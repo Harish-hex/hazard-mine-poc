@@ -1,0 +1,23 @@
+# Go
+/cmd/server/server
+/cmd/mockclient/mockclient
+/cmd/wsdump/wsdump
+*.exe
+*.test
+
+# Next.js dashboard
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+dashboard/build/
+dashboard/.env*
+dashboard/*.tsbuildinfo
+dashboard/next-env.d.ts
+dashboard/AGENTS.md
+dashboard/CLAUDE.md
+dashboard/test-results/
+dashboard/e2e/screenshots/
+
+# OS / editor
+.DS_Store
+*.log

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Hazard Report</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    background: #111;
+    color: #eee;
+  }
+  h1 { font-size: 1.3rem; margin-bottom: 0.25rem; }
+  p.sub { color: #999; margin-top: 0; margin-bottom: 1.5rem; font-size: 0.9rem; }
+  label { display: block; margin-bottom: 0.4rem; font-weight: 600; }
+  select, button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #444;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+  }
+  select { background: #1c1c1c; color: #eee; }
+  button {
+    background: #c0392b;
+    color: #fff;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 18px;
+    font-size: 1.15rem;
+  }
+  button:active { background: #922b21; }
+  button:disabled { background: #555; cursor: not-allowed; }
+  #status {
+    margin-top: 1rem;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    display: none;
+  }
+  #status.ok { display: block; background: #14401f; color: #a6f0b0; }
+  #status.err { display: block; background: #401414; color: #f0a6a6; }
+</style>
+</head>
+<body>
+  <h1>Report Hazard</h1>
+  <p class="sub">Blocks the cart's current edge and triggers a reroute.</p>
+
+  <form id="hazard-form">
+    <label for="type">Hazard type</label>
+    <select id="type" name="type">
+      <option value="rockfall">Rockfall</option>
+      <option value="flooding">Flooding</option>
+      <option value="gas">Gas / Ventilation</option>
+      <option value="collapse">Collapse</option>
+      <option value="other">Other</option>
+    </select>
+
+    <label for="severity">Severity</label>
+    <select id="severity" name="severity">
+      <option value="low">Low</option>
+      <option value="medium" selected>Medium</option>
+      <option value="high">High</option>
+    </select>
+
+    <button type="submit" id="submit-btn">Report Hazard</button>
+  </form>
+
+  <div id="status"></div>
+
+<script>
+  const form = document.getElementById('hazard-form');
+  const btn = document.getElementById('submit-btn');
+  const statusEl = document.getElementById('status');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    btn.disabled = true;
+    statusEl.className = '';
+    statusEl.textContent = '';
+
+    const type = document.getElementById('type').value;
+    const severity = document.getElementById('severity').value;
+
+    try {
+      const resp = await fetch('/api/hazard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, severity }),
+      });
+      const data = await resp.json().catch(() => ({}));
+
+      if (resp.ok) {
+        statusEl.className = 'ok';
+        statusEl.textContent = 'Reported. Blocked edge: ' + (data.blocked_edge || '?') +
+          (data.route_changed ? ' — route changed.' : ' — route unchanged.');
+      } else {
+        statusEl.className = 'err';
+        statusEl.textContent = 'Error: ' + (data.error || resp.statusText);
+      }
+    } catch (err) {
+      statusEl.className = 'err';
+      statusEl.textContent = 'Network error: ' + err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
